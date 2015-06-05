@@ -13,3 +13,17 @@
  *= require_tree .
  *= require_self
  */
+
+
+
+
+
+.node text {
+  font: 12px sans-serif;
+}
+
+.link {
+  fill: none;
+  stroke: blue;
+  stroke-width: 2px;
+}

@@ -4,21 +4,226 @@ $.ajax({
   url: '/test_d3',
   dataType: 'json',
   success: function (data) {
-    drawBarChart(data);
+    barchart(data);
     pie();
-    pie2();
+    animatedPieChart();
+    userMigration();
   },
   error: function (result) {
     error();
   }
 });
 
+function userMigration() {
 
-function drawBarChart(data){
+  var treeData = [
+    {
+      name: "Total(52k)",
+      parent: null,
+      value: 50,
+      children: [
+        {
+          name: "with VA(35K)",
+          parent: 'Total Users',
+          value: 35,
+          children: [
+            {
+              name: "customerid(10K)",
+              parent: 'Total Users',
+              value: 10
+            },
+            {
+              name: "without customerid(25k)",
+              parent: 'Total Users',
+              value: 25
+            }
+          ]
+        },
+        {
+          name: "without VA(17k)",
+          parent: 'Total users',
+          value: 17
+        }
+      ]
+    }
+  ];
+
+  var margin = {top: 20, right: 120, bottom: 20, left: 120},
+      width = 960 - margin.right - margin.left,
+      height = 500 - margin.top - margin.bottom;
+
+  var i = 0,
+    duration = 750,
+    root;
+
+  d3.select('body').append('h1').text(' Distribution of users auth with NP - total users to migrate: 52777')
+
+  var svg = d3.select('body').append('svg')
+    .attr("width", width + margin.right + margin.left)
+    .attr("height", 700)
+    .append('g')
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+  var tree = d3.layout.tree()
+    .size([width, height]);
+
+  var diagonal = d3.svg.diagonal()
+    .projection(function(d) { return  [d.y, d.x]; });
+
+  root = treeData[0] // This computes the nodes. you have an entire
+  root.x0 = 0;
+  root.y0 = 10;
+
+  update(root);
+
+  function update(source) {
+
+    var nodes = tree.nodes(root) // get all the computed position of all the nodes
+    var links = tree.links(nodes);// return an array of objects with links
+
+
+    nodes.forEach(function(d) { d.y = d.depth * 360; });
+
+    var node = svg.selectAll("g.node")
+      .data(nodes, function(d) { return d.id || (d.id = ++i); });
+
+    var nodeEnter = node.enter().append("g")
+      .attr("class", "node")
+      .attr("transform", function(d) {
+        return "translate(" + d.y + "," + d.x + ")"; });
+    //
+    nodeEnter.append("circle")
+      .attr("r", function(d) { return d.value; })
+      .style("fill", function(d) { return 'orange'; })
+      .style("stroke", 'red')
+      .style('stroke-width',3);
+    //
+    nodeEnter.append("text")
+      .attr("x", function(d) {
+        return d.children || d._children ?
+        (d.value + 4) * -1 : d.value + 4 })
+      .attr("dy", ".35em")
+      .attr("text-anchor", function(d) {
+        return d.children || d._children ? "end" : "start"; })
+      .text(function(d) { return d.name; })
+      .style("fill-opacity", 1);
+
+
+    var link = svg.selectAll("path.link")
+      .data(links, function(d) { return d.target.id; });
+
+    link.enter().insert("path", "g")
+      .attr("class", "link")
+      .attr("d", diagonal);
+
+
+
+
+
+      //// Compute the new tree layout.
+      //var nodes = tree.nodes(root).reverse(),
+      //  links = tree.links(nodes);
+      //
+      //// Normalize for fixed-depth.
+      //nodes.forEach(function(d) { d.y = d.depth * 180; });
+      //
+      //// Update the nodes…
+      //var node = svg.selectAll("g.node")
+      //  .data(nodes, function(d) { return d.id || (d.id = ++i); });
+      //
+      //// Enter any new nodes at the parent's previous position.
+      //var nodeEnter = node.enter().append("g")
+      //  .attr("class", "node")
+      //  .attr("transform", function(d) { return "translate(" + source.y0 + "," + source.x0 + ")"; })
+      //  .on("click", click);
+      //
+      ////nodeEnter.append("rect")
+      ////  .attr('width',5)
+      ////  .style("fill", function(d) { return d._children ? "lightsteelblue" : "#fff"; });
+      //
+      //nodeEnter.append("text")
+      //  .attr("x", function(d) { return d.children || d._children ? -13 : 13; })
+      //  .attr("dy", ".35em")
+      //  .attr("text-anchor", function(d) { return d.children || d._children ? "end" : "start"; })
+      //  .text(function(d) { return d.name; })
+      //  .style("fill-opacity", 1e-6);
+      //
+      //// Transition nodes to their new position.
+      //var nodeUpdate = node.transition()
+      //  .duration(duration)
+      //  .attr("transform", function(d) { return "translate(" + d.y + "," + d.x + ")"; });
+      //
+      //nodeUpdate.select("circle")
+      //  .attr("r", 10)
+      //  .style("fill", function(d) { return d._children ? "lightsteelblue" : "#fff"; });
+      //
+      //nodeUpdate.select("text")
+      //  .style("fill-opacity", 1);
+      //
+      //// Transition exiting nodes to the parent's new position.
+      //var nodeExit = node.exit().transition()
+      //  .duration(duration)
+      //  .attr("transform", function(d) { return "translate(" + source.y + "," + source.x + ")"; })
+      //  .remove();
+      //
+      //nodeExit.select("circle")
+      //  .attr("r", 1e-6);
+      //
+      //nodeExit.select("text")
+      //  .style("fill-opacity", 1e-6);
+      //
+      //// Update the links…
+      //var link = svg.selectAll("path.link")
+      //  .data(links, function(d) { return d.target.id; });
+      //
+      //// Enter any new links at the parent's previous position.
+      //link.enter().insert("path", "g")
+      //  .attr("class", "link")
+      //  .attr("d", function(d) {
+      //    var o = {x: source.x0, y: source.y0};
+      //    return diagonal({source: o, target: o});
+      //  });
+      //
+      //// Transition links to their new position.
+      //link.transition()
+      //  .duration(duration)
+      //  .attr("d", diagonal);
+      //
+      //// Transition exiting nodes to the parent's new position.
+      //link.exit().transition()
+      //  .duration(duration)
+      //  .attr("d", function(d) {
+      //    var o = {x: source.x, y: source.y};
+      //    return diagonal({source: o, target: o});
+      //  })
+      //  .remove();
+      //
+      //// Stash the old positions for transition.
+      //nodes.forEach(function(d) {
+      //  d.x0 = d.x;
+      //  d.y0 = d.y;
+      //});
+  }
+
+// Toggle children on click.
+  function click(d) {
+    if (d.children) {
+      d._children = d.children;
+      d.children = null;
+    } else {
+      d.children = d._children;
+      d._children = null;
+    }
+    update(d);
+  }
+}
+
+
+function barchart(data) {
   var w = 500;
   var h = 200;
   var barPadding = 1;
-  var svg = d3.select("body").append("svg").attr("width", w).attr('height', h);
+  var svg = d3.select("#chart").append("svg").attr("width", w).attr('height', h);
   var tooltip = d3.select("body")
     .append("div")
     .style("position", "absolute")
@@ -29,9 +234,14 @@ function drawBarChart(data){
     .data(data)
     .enter()
     .append("rect")
-    .attr("x", function(d, i){return i * (w / data.length);})
-    .attr("y", function(d){ return 200; })
+    .attr("x", function (d, i) {
+      return i * (w / data.length);
+    })
+    .attr("y", function (d) {
+      return h;
+    })
     .attr("width", w / data.length - barPadding)
+
     .on('mouseover', function (d) {
       d3.select(this).style({opacity: '0.8'});
       return tooltip.style("visibility", "visible").text(d);
@@ -41,30 +251,35 @@ function drawBarChart(data){
       d3.select(this).attr("fill", '#bcbd22')
       return tooltip.style("visibility", "hidden");
     })
-    .on("mousemove", function(){
+    .on("mousemove", function () {
       return tooltip.style("top",
-        (d3.event.pageY-10)+"px").style("left",(d3.event.pageX+10)+"px");
+        (d3.event.pageY - 10) + "px").style("left", (d3.event.pageX + 10) + "px");
     })
     .attr("height", '0').attr("fill", '#bcbd22')
     .transition()
-    .delay(function(d, i) { return i *100; })
-    .duration(200)
-    .attr("y", function(d){ return h - (d*4); })
-    .attr("height", function(d){ return d * 4; }).attr("fill", '#bcbd22')
-
-
+    .delay(function (d, i) {
+      return i * 100;
+    })
+    .duration(1000)
+    .ease('elastic')
+    .attr("height", function (d) {
+      return d * 4;
+    }).attr("fill", '#bcbd22')
+    .attr("y", function (d) {
+      return h - (d * 4);
+    })
 
   svg.selectAll("text")
     .data(data)
     .enter()
     .append("text")
-    .text(function(d) {
+    .text(function (d) {
       return d;
     })
-    .attr("x", function(d, i) {
+    .attr("x", function (d, i) {
       return i * (w / data.length) + 5;
     })
-    .attr("y", function(d) {
+    .attr("y", function (d) {
       return h - (d * 4) + 15;
     })
     .attr("font-family", "sans-serif")
@@ -73,12 +288,12 @@ function drawBarChart(data){
 }
 
 
-function pie(){
+function pie() {
   var dataset = [
-    { label: 'in-progress', count: 11 },
-    { label: 'new', count: 3 },
-    { label: 'on-sale', count: 5 },
-    { label: 'failed', count: 10 }
+    {label: 'in-progress', count: 11},
+    {label: 'new', count: 3},
+    {label: 'on-sale', count: 5},
+    {label: 'failed', count: 10}
   ];
   var width = 300;
   var height = 300;
@@ -88,7 +303,7 @@ function pie(){
 
   //var color = d3.scale.category20b();
   var color = d3.scale.ordinal()
-    .range(['#e6550d', '#fdd0a2','#fdae6b', '#fd8d3c']);
+    .range(['#e6550d', '#fdd0a2', '#fdae6b', '#fd8d3c']);
 
   var tooltip = d3.select("body")
     .append("div")
@@ -96,6 +311,8 @@ function pie(){
     .style("z-index", "10")
     .style("visibility", "hidden")
     .text("Total number of sales");
+
+
 
   var svg = d3.select('body')
     .append('svg')
@@ -110,21 +327,23 @@ function pie(){
 
 
   var pie = d3.layout.pie()
-    .value(function(d) { return d.count; })
+    .value(function (d) {
+      return d.count;
+    })
     .sort(null);
 
-  var arcs =  svg.selectAll("g")
+  var arcs = svg.selectAll("g")
     .data(pie(dataset))
     .enter()
     .append("g")
 
 
-
   arcs.append('svg:path')
-    .attr('fill', function(d, i) {
+    .attr('fill', function (d, i) {
       return color(d.data.label);
     })
     //.transition()
+    //.ease('elastic')
     //.delay(function(d, i) { return  i * 200; })
     //.duration(500)
     .attr('d', arc)
@@ -133,102 +352,67 @@ function pie(){
   arcs.append('svg:text')
     .attr('dy', ".35em")
     .attr('text-anchor', 'middle')
-    .text(function(d,i){return d.data.label})
-    .attr('transform', function(d){
+    .text(function (d, i) {
+      return d.data.label
+    })
+    .attr('transform', function (d) {
       d.outerRadius = outerRadius; // Set Outer Coordinate
-      d.innerRadius = outerRadius/2;
+      d.innerRadius = outerRadius / 2;
       return "translate(" + arc.centroid(d) + ")";
     })
-
-    .on('mouseover',function(){
+    .on('mouseover', function () {
       d3.select(this)
         .transition()
-        .style("opacity", 0.4)
         .attr("fill", "white")
     })
-    .on('mouseout',function(){
-      d3.select(this).transition().style("opacity",1.5)
+    .on('mouseout', function () {
+      d3.select(this).transition().style("opacity", 1.5)
         .attr("fill", "black")
     });
 
-  //var arcs = vis.selectAll("g")
-  //  .data(pie)
-  //  .enter()
-  //  .append('g')
-  //  .attr("d", arc);
-  //
-  //arcs.append("svg:path")
-  //  .attr("fill", function(d,i){return color(i);})
-  //  .attr("d", arc)
 
-
-  //var path = svg.selectAll('path')
-  //  .data(pie(dataset)) // This will pass the data and give meaning in the context of the pie chart.
-  //  .enter() //This a place holder for the dom that will be created
-  //  .append('path') // This where the actual path is element is created
-  //  .attr('d', arc) // pass the arc function that's defined, this is used to create the complicated arc values
-  //  .attr('fill', function(d, i) {
-  //    return color(d.data.label);
-  //  });
-  //
-  //var arcs = svg.selectAll("g")
-  //  .data(pie(dataset))
-  //  .enter()
-  //  .append('g')
-  //  .attr("d", arc)
-  //  .append('text')
-  //  .attr("dy", ".35em")
-  //  .attr("text-anchor", "middle")
-  //  .attr("transform", function(d) {
-  //    d.outerRadius = outerRadius;
-  //    d.innerRadius = outerRadius/2;
-  //    return "translate(" + arc.centroid(d) + ")";
-  //  })
-  //  .text(function(d) { return d.data.count; });
-
-  //arcs.selectAll('text')
-  //  .data(pie(dataset))
-  //  .enter()
-  //  .append('text')
-  //  .attr("dy", ".35em")
-  //  .attr("text-anchor", "middle")
-  //  .attr("transform", function(d) {
-  //    return "translate(" + arc.centroid(d) + ")";
-  //  })
-  //  .text(function(d) { return d.data.count; });
 }
 
-function pie2(){
+function animatedPieChart() {
   var canvasWidth = 300, //width
     canvasHeight = 300,   //height
     outerRadius = 100,   //radius
     color = d3.scale.category10(); //builtin range of colors
 
   var dataSet = [
-    {"legendLabel":"One", "magnitude":20},
-    {"legendLabel":"Two", "magnitude":40},
-    {"legendLabel":"Three", "magnitude":50},
-    {"legendLabel":"Four", "magnitude":16},
-    {"legendLabel":"Five", "magnitude":50},
-    {"legendLabel":"Six", "magnitude":8},
-    {"legendLabel":"Seven", "magnitude":30}];
+    {"legendLabel": "One", "magnitude": 20},
+    {"legendLabel": "Two", "magnitude": 40},
+    {"legendLabel": "Three", "magnitude": 50},
+    {"legendLabel": "Four", "magnitude": 16},
+    {"legendLabel": "Five", "magnitude": 55},
+    {"legendLabel": "Six", "magnitude": 8},
+    {"legendLabel": "Seven", "magnitude": 30}];
+
+  d3.select('body').append('h1')
+    .text('Happy Donut day :-)')
+    .style("color", 'purple')
+    .style("font-family", "Comic Sans MS")
 
   var vis = d3.select("body")
-    .append("svg") //create the SVG element inside the <body>
-    .data([dataSet]) //associate our data with the document
-    .attr("width", canvasWidth) //set the width of the canvas
-    .attr("height", canvasHeight) //set the height of the canvas
-    .append("g") //make a group to hold our pie chart
-    .attr("transform", "translate(" + 1.5*outerRadius + "," + 1.5*outerRadius + ")") // relocate center of pie to 'outerRadius,outerRadius'
+    .append("svg")
+    .data([dataSet])
+    .attr("width", canvasWidth)
+    .attr("height", canvasHeight)
+    .append("g")
+    .attr("transform", "translate(" + 1.5 * outerRadius + "," + 1.5 * outerRadius + ")")
 
-  //// This will create <path> elements for us using arc data...
+
   var arc = d3.svg.arc()
     .outerRadius(outerRadius)
-    .innerRadius(outerRadius/2);
+    .innerRadius(outerRadius / 2);
   //
-  var pie = d3.layout.pie() //this will create arc data for us given a list of values
-    .value(function(d) { return d.magnitude; }) // Binding each value to the pie
-    .sort( function(d) { return null; } );
+  var pie = d3.layout.pie()
+    .value(function (d) {
+      return d.magnitude;
+    })
+    .sort(function (d) {
+      return null;
+    });
 
   var arcs = vis.selectAll("g")
     .data(pie)
@@ -237,7 +421,9 @@ function pie2(){
     .attr("d", arc);
 
   arcs.append("svg:path")
-    .attr("fill", function(d,i){return color(i);})
+    .attr("fill", function (d, i) {
+      return color(i);
+    })
     .attr("d", arc)
     .transition()
     .ease("bounce")
@@ -245,78 +431,26 @@ function pie2(){
     .attrTween("d", tweenPie)
 
 
-
-  // Add a magnitude value to the larger arcs, translated to the arc centroid and rotated.
-
-
   arcs.append("svg:text")
     .attr("dy", ".35em")
     .attr("text-anchor", "middle")
-    //.attr("transform", function(d) { return "translate(" + arc.centroid(d) + ")rotate(" + angle(d) + ")"; })
-    .attr("transform", function(d) { //set the label's origin to the center of the arc
-      //we have to make sure to set these before calling arc.centroid
-      d.outerRadius = outerRadius; // Set Outer Coordinate
-      d.innerRadius = outerRadius/2; // Set Inner Coordinate
+    .attr("transform", function (d) {
+      d.outerRadius = outerRadius;
+      d.innerRadius = outerRadius / 2;
       return "translate(" + arc.centroid(d) + ")rotate(" + angle(d) + ")";
     })
     .style("fill", "White")
-    .style("font", "bold 12px Arial")
-    .text(function(d) { return d.data.magnitude; });
+    .style("font", "Arial")
+    .text(function (d) {
+      return d.data.magnitude;
+    });
 
-
-
-  //// Select all <g> elements with class slice (there aren't any yet)
-  //var arcs = vis.selectAll("g.slice")
-  //  // Associate the generated pie data (an array of arcs, each having startAngle,
-  //  // endAngle and value properties)
-  //  .data(pie)
-  //  // This will create <g> elements for every "extra" data element that should be associated
-  //  // with a selection. The result is creating a <g> for every object in the data array
-  //  .enter()
-  //  // Create a group to hold each slice (we will have a <path> and a <text>
-  //  // element associated with each slice)
-  //  .append("svg:g")
-  //  .attr("class", "slice");    //allow us to style things in the slices (like text)
-  //
-  //arcs.append("svg:path")
-  //  //set the color for each slice to be chosen from the color function defined above
-  //  .attr("fill", function(d, i) { return color(i); } )
-  //  //this creates the actual SVG path using the associated data (pie) with the arc drawing function
-  //  .attr("d", arc);
-  //
-  //// Add a legendLabel to each arc slice...
-  //arcs.append("svg:text")
-  //  .attr("transform", function(d) { //set the label's origin to the center of the arc
-  //    //we have to make sure to set these before calling arc.centroid
-  //    d.outerRadius = outerRadius + 50; // Set Outer Coordinate
-  //    d.innerRadius = outerRadius + 45; // Set Inner Coordinate
-  //    return "translate(" + arc.centroid(d) + ")";
-  //  })
-  //  .attr("text-anchor", "middle") //center the text on it's origin
-  //  .style("fill", "Purple")
-  //  .style("font", "bold 12px Arial")
-  //  .text(function(d, i) { return dataSet[i].legendLabel; }); //get the label from our original data array
-  //
-  //// Add a magnitude value to the larger arcs, translated to the arc centroid and rotated.
-  //arcs.filter(function(d) { return d.endAngle - d.startAngle > .2; }).append("svg:text")
-  //  .attr("dy", ".35em")
-  //  .attr("text-anchor", "middle")
-  //  //.attr("transform", function(d) { return "translate(" + arc.centroid(d) + ")rotate(" + angle(d) + ")"; })
-  //  .attr("transform", function(d) { //set the label's origin to the center of the arc
-  //    //we have to make sure to set these before calling arc.centroid
-  //    d.outerRadius = outerRadius; // Set Outer Coordinate
-  //    d.innerRadius = outerRadius/2; // Set Inner Coordinate
-  //    return "translate(" + arc.centroid(d) + ")rotate(" + angle(d) + ")";
-  //  })
-  //  .style("fill", "White")
-  //  .style("font", "bold 12px Arial")
-  //  .text(function(d) { return d.data.magnitude; });
-  //
-  //// Computes the angle of an arc, converting from radians to degrees.
   function tweenPie(b) {
     b.innerRadius = 0;
     var i = d3.interpolate({startAngle: 0, endAngle: 0}, b);
-    return function(t) { return arc(i(t)); };
+    return function (t) {
+      return arc(i(t));
+    };
   }
 
   function angle(d) {
