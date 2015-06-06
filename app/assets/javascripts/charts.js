@@ -41,7 +41,7 @@ function userMigration() {
         },
         {
           name: "without VA(17k)",
-          parent: 'Total users',
+          parent: 'Total',
           value: 17
         }
       ]
