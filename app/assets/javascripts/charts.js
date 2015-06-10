@@ -357,98 +357,21 @@ function animatedPieChart() {
 
 
 function linechart(){
-  data1 = [
-    {
-      "x": '1',
-      "y": '60'
-    },
-    {
-      "x": '2',
-      "y": '54'
-    },
-    {
-      "x": '3',
-      "y": '48'
-    },
-    {
-      "x": '4',
-      "y": '42'
-    },
-    {
-      "x": '5',
-      "y": '36'
-    },
-    {
-      "x": '6',
-      "y": '40'
-    },
-    {
-      "x": '7',
-      "y": '24'
-    },
-    {
-      "x": '8',
-      "y": '18'
-    },
 
-    {
-      "x": '9',
-      "y": '12'
-    },
-  ]
+  var data1 = [60, 54,48,42,36,40, 24, 18, 12 ];
 
+  var data2 = [40,16,16,8,0,0,0,0,0];
 
-  data2 = [
-    {
-      "x": '1',
-      "y": '40'
-    },
-    {
-      "x": '2',
-      "y": '16'
-    },
-    {
-      "x": '3',
-      "y": '16'
-    },
-    {
-      "x": '4',
-      "y": '8'
-    },
-    {
-      "x": '5',
-      "y": '0'
-    },
-    {
-      "x": '6',
-      "y": '0'
-    },
-    {
-      "x": '7',
-      "y": '0'
-    },
-    {
-      "x": '8',
-      "y": '0'
-    },
+  var WIDTH = 500;
 
-    {
-      "x": '9',
-      "y": '0'
-    },
-  ]
-
-
-  var WIDTH = 500
-
-  var HEIGHT = 250
+  var HEIGHT = 250;
 
   var MARGINS = {
     top: 30,
     right: 20,
     bottom: 30,
     left: 50
-  }
+  };
 
   var svg = d3.select('body').append('svg')
     .attr("width", WIDTH )
@@ -468,11 +391,11 @@ function linechart(){
 
 
   var lineGen = d3.svg.line()
-    .x(function(d) {
-      return xScale(d.x);
+    .x(function(d, i) {
+      return xScale( i + 1);
     })
     .y(function(d) {
-      return yScale(d.y);
+      return yScale(d);
     })
     .interpolate('basis');
 
