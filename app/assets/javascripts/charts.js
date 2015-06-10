@@ -4,10 +4,11 @@ $.ajax({
   url: '/test_d3',
   dataType: 'json',
   success: function (data) {
-    barchart(data);
-    pie();
-    animatedPieChart();
-    userMigration();
+    //barchart(data);
+    //pie();
+    //animatedPieChart();
+    //userMigration();
+    linechart()
   },
   error: function (result) {
     error();
@@ -457,6 +458,140 @@ function animatedPieChart() {
     var a = (d.startAngle + d.endAngle) * 90 / Math.PI - 90;
     return a > 90 ? a - 180 : a;
   }
+}
+
+
+function linechart(){
+  data1 = [
+    {
+      "x": '1',
+      "y": '60'
+    },
+    {
+      "x": '2',
+      "y": '54'
+    },
+    {
+      "x": '3',
+      "y": '48'
+    },
+    {
+      "x": '4',
+      "y": '42'
+    },
+    {
+      "x": '5',
+      "y": '36'
+    },
+    {
+      "x": '6',
+      "y": '40'
+    },
+    {
+      "x": '7',
+      "y": '24'
+    },
+    {
+      "x": '8',
+      "y": '18'
+    },
+
+    {
+      "x": '9',
+      "y": '12'
+    },
+  ]
+
+
+  data2 = [
+    {
+      "x": '1',
+      "y": '40'
+    },
+    {
+      "x": '2',
+      "y": '16'
+    },
+    {
+      "x": '3',
+      "y": '16'
+    },
+    {
+      "x": '4',
+      "y": '8'
+    },
+    {
+      "x": '5',
+      "y": '0'
+    },
+    {
+      "x": '6',
+      "y": '0'
+    },
+    {
+      "x": '7',
+      "y": '0'
+    },
+    {
+      "x": '8',
+      "y": '0'
+    },
+
+    {
+      "x": '9',
+      "y": '0'
+    },
+  ]
+
+
+  var WIDTH = 500
+
+  var HEIGHT = 250
+
+    var MARGINS = {
+      top: 30,
+      right: 20,
+      bottom: 30,
+      left: 50
+    }
+
+  var svg = d3.select('body').append('svg')
+    .attr("width", WIDTH )
+    .attr("height", HEIGHT)
+
+  xScale = d3.scale.linear().domain([0,10]).range([MARGINS.left, WIDTH - MARGINS.right])
+  yScale = d3.scale.linear().domain([0,70]).range([HEIGHT - MARGINS.top, MARGINS.bottom])
+
+  xAxis = d3.svg.axis().scale(xScale).orient("bottom")
+  yAxis = d3.svg.axis().scale(yScale).orient("left")
+
+  svg.append('svg:g')
+    .attr("transform", "translate(" + (MARGINS.left) + ",0)")
+    .call(yAxis);
+  svg.append('svg:g').attr("transform", "translate(0," + (HEIGHT - MARGINS.bottom) + ")")
+    .call(xAxis);
+
+
+  var lineGen = d3.svg.line()
+    .x(function(d) {
+      return xScale(d.x);
+    })
+    .y(function(d) {
+      return yScale(d.y);
+    })
+    .interpolate('basis');
+
+  svg.append('svg:path')
+    .attr('d',lineGen(data1))
+    .attr('stroke', 'green')
+    .attr('stroke-width', 3)
+    .attr('fill', 'none');
+
+  svg.append('svg:path')
+    .attr('d',lineGen(data2))
+    .attr('stroke', 'red')
+    .attr('stroke-width', 3)
+    .attr('fill', 'none');
 }
 
 
