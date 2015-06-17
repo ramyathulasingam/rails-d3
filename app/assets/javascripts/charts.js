@@ -5,10 +5,10 @@ $.ajax({
   dataType: 'json',
   success: function (data) {
     barchart(data);
-    pie();
     animatedPieChart();
     userMigration();
     linechart()
+    pie();
   },
   error: function (result) {
     error();
@@ -57,7 +57,7 @@ function userMigration() {
     duration = 750,
     root;
 
-  d3.select('body').append('h1').text(' Distribution of users auth with NP - total users to migrate: 52777')
+  d3.select('body').append('a').attr("name", 'tree')
 
   var svg = d3.select('body').append('svg')
     .attr("width", width + margin.right + margin.left)
@@ -123,7 +123,8 @@ function barchart(data) {
   var w = 500;
   var h = 200;
   var barPadding = 1;
-  var svg = d3.select("#chart").append("svg").attr("width", w).attr('height', h);
+  d3.select('body').append('a').attr("name", 'bar-chart')
+  var svg = d3.select('body').append("svg").attr("width", w).attr('height', h);
   var tooltip = d3.select("body")
     .append("div")
     .style("position", "absolute")
@@ -189,6 +190,8 @@ function barchart(data) {
 
 
 function pie() {
+  d3.select('body').append('a').attr("name", 'pie')
+
   var dataset = [
     {label: 'in-progress', count: 11},
     {label: 'new', count: 3},
@@ -270,6 +273,9 @@ function pie() {
 }
 
 function animatedPieChart() {
+
+  d3.select('body').append('a').attr("name", 'animated-pie-chart');
+
   var canvasWidth = 300, //width
     canvasHeight = 300,   //height
     outerRadius = 100,   //radius
@@ -283,11 +289,6 @@ function animatedPieChart() {
     {"legendLabel": "Five", "magnitude": 55},
     {"legendLabel": "Six", "magnitude": 8},
     {"legendLabel": "Seven", "magnitude": 30}];
-
-  d3.select('body').append('h1')
-    .text('Happy Donut day :-)')
-    .style("color", 'purple')
-    .style("font-family", "Comic Sans MS")
 
   var vis = d3.select("body")
     .append("svg")
@@ -358,13 +359,13 @@ function animatedPieChart() {
 
 function linechart(){
 
-  var data1 = [60, 54,48,42,36,40, 24, 18, 12 ];
+  var data1 = [60, 54,48,42,36,30,24,18,12,6,0 ];
 
   var data2 = [40,16,16,8,0,0,0,0,0];
 
-  var WIDTH = 500;
+  var WIDTH = 1000;
 
-  var HEIGHT = 250;
+  var HEIGHT = 500;
 
   var MARGINS = {
     top: 30,
@@ -373,22 +374,54 @@ function linechart(){
     left: 50
   };
 
+  d3.select('body').append('a').attr('name', 'line-chart');
+
   var svg = d3.select('body').append('svg')
     .attr("width", WIDTH )
     .attr("height", HEIGHT)
 
-  xScale = d3.scale.linear().domain([0,10]).range([MARGINS.left, WIDTH - MARGINS.right])
+  red_circle = svg.append('circle').attr('cx', 800).attr('cy','20').attr("r", 5).style('fill', 'red')
+  svg.append('text').attr('x', 820).attr('y', '20').text("CURRENT");
+
+
+
+  gree_circle = svg.append('circle').attr('cx', 800).attr('cy','35').attr("r", 5).style('fill', 'green')
+  svg.append('text').attr('x', 820).attr('y', '40').text("IDEAL");
+
+
+
+  xScale = d3.scale.linear().domain([0,12]).range([MARGINS.left, WIDTH - MARGINS.right])
   yScale = d3.scale.linear().domain([0,70]).range([HEIGHT - MARGINS.top, MARGINS.bottom])
 
   xAxis = d3.svg.axis().scale(xScale).orient("bottom")
   yAxis = d3.svg.axis().scale(yScale).orient("left")
 
+
+  var tooltip = d3.select("body")
+    .append("div")
+    .style("position", "absolute")
+    .style("z-index", "10")
+    .style("visibility", "hidden")
+    .text("function(d){return d;}");
+
   svg.append('svg:g')
     .attr("transform", "translate(" + (MARGINS.left) + ",0)")
-    .call(yAxis);
-  svg.append('svg:g').attr("transform", "translate(0," + (HEIGHT - MARGINS.bottom) + ")")
-    .call(xAxis);
+    .call(yAxis)
+  .append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 6)
+      .attr("dy", ".71em")
+      .style("text-anchor", "end")
+      .style('fill', 'blue')
+      .text("working hrs");
 
+  svg.append('svg:g').attr("transform", "translate(0," + (HEIGHT - MARGINS.bottom) + ")")
+    .call(xAxis)
+    .append('text')
+      .attr("x", WIDTH - MARGINS.right - MARGINS.left )
+      .attr("y", "-9" )
+      .style('fill', 'blue')
+      .text("days");
 
   var lineGen = d3.svg.line()
     .x(function(d, i) {
@@ -396,20 +429,61 @@ function linechart(){
     })
     .y(function(d) {
       return yScale(d);
-    })
-    .interpolate('basis');
+    });
+    //.interpolate('basis');
+
 
   svg.append('svg:path')
     .attr('d',lineGen(data1))
     .attr('stroke', 'green')
     .attr('stroke-width', 3)
-    .attr('fill', 'none');
+    .attr('fill', 'none')
+    .on('mouseover', function (d) {
+      console.log(this);
+      d3.select(this).style({opacity: '0.8'});
+      return tooltip.style("visibility", "visible").text("ideal");
+    })
+    .on('mouseout', function (d) {
+      d3.select(this).style({opacity: '2.0'});
+      d3.select(this).attr("fill", '#bcbd22')
+      return tooltip.style("visibility", "hidden");
+    })
+    .on("mousemove", function () {
+      return tooltip.style("top",
+        (d3.event.pageY - 10) + "px").style("left", (d3.event.pageX + 10) + "px");
+    });
 
   svg.append('svg:path')
     .attr('d',lineGen(data2))
     .attr('stroke', 'red')
     .attr('stroke-width', 3)
-    .attr('fill', 'none');
+    .attr('fill', 'none')
+    .on('mouseover', function (d) {
+        console.log(this);
+        d3.select(this).style({opacity: '0.8'});
+        return tooltip.style("visibility", "visible").text("current");
+      })
+    .on('mouseout', function (d) {
+      return tooltip.style("visibility", "hidden");
+    })
+    .on("mousemove", function () {
+      return tooltip.style("top",
+        (d3.event.pageY - 10) + "px").style("left", (d3.event.pageX + 10) + "px");
+    });
+
+
+  d3.select("#save").on("click", function(){
+    var html = d3.select("svg")
+      .attr("version", 1.1)
+      .attr("xmlns", "http://www.w3.org/2000/svg")
+      .node().parentNode.innerHTML;
+
+    //console.log(html);
+    var imgsrc = 'data:image/svg+xml;base64,'+ btoa(html);
+    var img = '<img src="'+imgsrc+'">';
+    d3.select("#svgdataurl").html(img);
+
+  });
 }
 
 
